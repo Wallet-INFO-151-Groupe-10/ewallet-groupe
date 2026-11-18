@@ -1,0 +1,25 @@
+body
+{ 
+    background-image: url(./image.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    
+
+}
+    h2
+{
+    color:blue; 
+}
+    img 
+{ 
+    height:100px ;
+    width: 150px;
+}
+.face-front
+{
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    height: 16rem;
+}
