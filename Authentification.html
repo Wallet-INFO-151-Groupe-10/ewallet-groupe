@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Client — Gestion Financière Avancée</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <link rel="stylesheet" href="Authentification.css">
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="card-header">
+            <div class="icon-badge">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <h1>Espace Client</h1>
+            <p>Portefeuille intelligent, épargne et virements</p>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <form class="voir-compte" id="compteForm">
+            <div class="input-groupe">
+                <label for="nomClient">Nom du titulaire</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" id="nomClient" placeholder="Ex : Johan (PIN: 1234)" autocomplete="off" required>
+                </div>
+            </div>
+
+            <div class="input-groupe">
+                <label for="pinClient">Code PIN (4 chiffres)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="pinClient" placeholder="••••" maxlength="4" inputmode="numeric" pattern="\d{4}" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btnvoir">
+                <span>Accéder au compte</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <!-- Notifications -->
+        <div id="alerteFeedback" class="alerte-feedback" hidden></div>
+
+        <!-- Tableau de bord -->
+        <div id="dashboardClient" class="dashboard-client" hidden>
+            <div class="carte-solde">
+                <div class="carte-top">
+                    <div>
+                        <span id="salutationClient">Bonjour</span>
+                        <div class="rib-badge" id="btnCopierRib" title="Cliquer pour copier le numéro de compte">
+                            <span id="numeroCompteText">CM-0000-XXX</span>
+                            <i class="fa-regular fa-copy"></i>
+                        </div>
+                    </div>
+                    <div class="carte-actions">
+                        <select id="selectDevise" class="select-devise" title="Devise">
+                            <option value="FCFA">FCFA</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="USD">USD ($)</option>
+                        </select>
+                        <button type="button" id="btnToggleSolde" class="btn-icone" title="Masquer/Afficher">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                        <button type="button" id="btnTelecharger" class="btn-icone" title="Relevé TXT">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </button>
+                        <button type="button" id="btnDeconnexion" class="btn-icone btn-logout" title="Déconnexion">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="montant-label">Solde disponible</div>
+                <div id="affichageSolde" class="montant-valeur">0 FCFA</div>
+
+                <!-- Barre de progression Objectif d'Épargne -->
+                <div class="epargne-box">
+                    <div class="epargne-info">
+                        <span>Objectif : <strong id="texteObjectif">250 000 FCFA</strong></span>
+                        <span id="pourcentageObjectif">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Statistiques -->
+                <div class="stats-resume">
+                    <div class="stat-item entree">
+                        <span><i class="fa-solid fa-arrow-trend-up"></i> Entrées</span>
+                        <strong id="totalEntrees">0 FCFA</strong>
+                    </div>
+                    <div class="stat-item sortie">
+                        <span><i class="fa-solid fa-arrow-trend-down"></i> Sorties</span>
+                        <strong id="totalSorties">0 FCFA</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglets de navigation -->
+            <div class="tabs-operations">
+                <button type="button" class="tab-btn active" data-tab="tab-caisse">Caisse</button>
+                <button type="button" class="tab-btn" data-tab="tab-virement">Virement</button>
+                <button type="button" class="tab-btn" data-tab="tab-objectif">Objectif</button>
+                <button type="button" class="tab-btn" data-tab="tab-securite">Sécurité</button>
+            </div>
+
+            <!-- Onglet 1 : Dépôt / Retrait avec motif -->
+            <div id="tab-caisse" class="tab-contenu active">
+                <div class="virement-controls">
+                    <input type="text" id="motifOperation" placeholder="Motif (ex: Salaire, Courses...)">
+                    <div class="operation-controls">
+                        <input type="number" id="montantOperation" placeholder="Montant (FCFA)" min="100" step="100">
+                        <button type="button" id="btnDepot" class="btn-op btn-depot">
+                            <i class="fa-solid fa-plus"></i> Dépôt
+                        </button>
+                        <button type="button" id="btnRetrait" class="btn-op btn-retrait">
+                            <i class="fa-solid fa-minus"></i> Retrait
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet 2 : Virement client -->
+            <div id="tab-virement" class="tab-contenu" hidden>
+                <div class="virement-controls">
+                    <div class="operation-controls">
+                        <input type="text" id="destinataireVirement" list="listeBeneficiaires" placeholder="Bénéficiaire (ex: Marie)">
+                        <input type="text" id="motifVirement" placeholder="Motif (optionnel)">
+                    </div>
+                    <datalist id="listeBeneficiaires"></datalist>
+                    <div class="operation-controls">
+                        <input type="number" id="montantVirement" placeholder="Montant (FCFA)" min="100" step="100">
+                        <button type="button" id="btnVirement" class="btn-op btn-virement">
+                            <i class="fa-solid fa-paper-plane"></i> Envoyer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet 3 : Objectif d'épargne -->
+            <div id="tab-objectif" class="tab-contenu" hidden>
+                <div class="operation-controls">
+                    <input type="number" id="nouvelObjectif" placeholder="Nouvel objectif (FCFA)" min="1000" step="1000">
+                    <button type="button" id="btnDefinirObjectif" class="btn-op btn-pin">
+                        <i class="fa-solid fa-bullseye"></i> Fixer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Onglet 4 : Sécurité & Plafond -->
+            <div id="tab-securite" class="tab-contenu" hidden>
+                <div class="virement-controls">
+                    <div class="operation-controls">
+                        <input type="password" id="ancienPin" placeholder="Ancien PIN" maxlength="4" inputmode="numeric">
+                        <input type="password" id="nouveauPin" placeholder="Nouveau PIN" maxlength="4" inputmode="numeric">
+                        <button type="button" id="btnChangerPin" class="btn-op btn-pin">PIN</button>
+                    </div>
+                    <div class="operation-controls">
+                        <input type="number" id="nouveauPlafond" placeholder="Plafond max par opération" min="5000" step="5000">
+                        <button type="button" id="btnChangerPlafond" class="btn-op btn-virement">Plafond</button>
+                        <button type="button" id="btnExportJson" class="btn-op btn-depot" title="Sauvegarde JSON">
+                            <i class="fa-solid fa-database"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique -->
+            <div class="historique-box">
+                <div class="historique-header">
+                    <h3>Historique</h3>
+                    <div class="filtres-histo">
+                        <button type="button" class="filtre-btn active" data-filtre="tout">Tout</button>
+                        <button type="button" class="filtre-btn" data-filtre="+">Entrées</button>
+                        <button type="button" class="filtre-btn" data-filtre="-">Sorties</button>
+                    </div>
+                </div>
+                <input type="text" id="rechercheHistorique" class="input-recherche" placeholder="Filtrer par motif ou montant...">
+                <ul id="listeHistorique" class="liste-historique"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="Authentification.js"></script>
+</body>
+</html>
